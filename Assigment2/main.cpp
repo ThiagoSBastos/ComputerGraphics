@@ -19,8 +19,8 @@ static constexpr float moon_to_earth_radius = 2.0;
 }  // namespace cfg
 
 static std::array<float, 4> eye = {4.0f, 6.0f, 8.0f, 1.0f};
-static float angle = 0;
-static float angle_moon = 0;
+static float angle = 0.0f;
+static float angle_moon = 0.0f;
 
 static void setCamera()
 {
@@ -35,8 +35,8 @@ static void setCamera()
 
   glMatrixMode(GL_MODELVIEW);
   glLoadIdentity();
-  gluLookAt(eye[0], eye[1], eye[2], cfg::center[0], cfg::center[1], cfg::center[2],
-            cfg::up_dir[0], cfg::up_dir[1], cfg::up_dir[2]);
+  //gluLookAt(eye[0], eye[1], eye[2], cfg::center[0], cfg::center[1], cfg::center[2],
+  //          cfg::up_dir[0], cfg::up_dir[1], cfg::up_dir[2]);
 }
 
 // Draws a sphere with r = 1.0 at (0,0,0)
@@ -131,6 +131,7 @@ static void drawScene()
 
   // Sun
   glPushMatrix();
+  glLoadIdentity();
   glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, yellow.data());
   drawSphere(128, 128);
 
@@ -139,26 +140,54 @@ static void drawScene()
   glTranslatef(cfg::earth_to_sun_radius, 0.0f, 0.0f);
   glScalef(0.7f, 0.7f, 0.7f);
   glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, blue.data());
+  glPopMatrix();
+
+
+  glPushMatrix();
+  glLoadIdentity();
+  std::array<float, 16> e;
+  glGetFloatv(GL_MODELVIEW_MATRIX, e.data());
+
+  // multiply 'e' w/ [0,0,0,1] --> [e12, e13, e14]
+  float ex = e[12];
+  float ey = e[13];
+  float ez = e[14];
+
   drawSphere(128, 128);
 
   // Moon
-  std::array<float, 16> m;
-  glGetFloatv(GL_MODELVIEW_MATRIX, m.data());
-  
-  // multiplica m por [0,0,0,1] --> [m12, m13, m14]
   glRotatef(angle_moon, 0.0f, 1.0f, 0.0f);
   glTranslatef(cfg::moon_to_earth_radius, 0.0f, 0.0f);
   glScalef(0.4f, 0.4f, 0.4f);
-  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, gray.data());
+  glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, gray.data());  
+  
+  std::array<float, 16> m;
+  glGetFloatv(GL_MODELVIEW_MATRIX, m.data());
+
+  // multiply 'm' w/ [0,0,0,1] --> [m12, m13, m14]
+  float mx = m[12];
+  float my = m[13];
+  float mz = m[14];
+
   drawSphere(128, 128);
   glPopMatrix();
 
-  //gluLookAt(ex, ey, ez, mx, my, mz, 0.0f, -1.0f, 0.0f);
+  gluLookAt(ex, ey, ez, mx, my, mz, 0.0f, -1.0f, 0.0f);
 }
 
-static void idle() 
+static void myIdleCB()
 {
+  angle += 1.0f;
+  if (angle > 360.0f) {
+    angle = 1.0f;
+  }
 
+  angle_moon += 1.5f;
+  if (angle_moon > 360.0f) {
+    angle_moon = 1.5;
+  }
+
+  glutPostRedisplay();
 }
 
 static void myDisplayCB()
@@ -169,7 +198,7 @@ static void myDisplayCB()
   glutSwapBuffers();  // update screen
 
   auto error = glGetError();
-  if (error) printf("Error %d", error);
+  if (error) printf("Error %d \n", error);
 }
 
 static void myKeyboardCB(uint8_t key, int x, int y)
@@ -219,6 +248,7 @@ int main(int argc, char** argv)
   glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
   glutCreateWindow("MyScene");
 
+  glutIdleFunc(myIdleCB);
   glutDisplayFunc(myDisplayCB);
   glutKeyboardFunc(myKeyboardCB);
 
