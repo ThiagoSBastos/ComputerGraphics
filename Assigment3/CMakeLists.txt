@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.0)
-project(assigment3 VERSION 0.1.0)
+project(assigment2 VERSION 0.1.0)
 
 cmake_policy(SET CMP0042 NEW)
 
@@ -15,7 +15,7 @@ include_directories(library ${OPENGL_INCLUDE_DIRS} ${GLUT_INCLUDE_DIRS})
 include(CTest)
 enable_testing()
 
-add_executable(assigment3 main.cpp shapes/cube.cpp shapes/sphere.cpp)
+add_executable(assigment2 main.cpp)
 
 set(CPACK_PROJECT_NAME ${PROJECT_NAME})
 set(CPACK_PROJECT_VERSION ${PROJECT_VERSION})
